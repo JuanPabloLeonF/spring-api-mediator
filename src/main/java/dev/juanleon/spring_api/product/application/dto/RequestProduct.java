@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.springframework.web.multipart.MultipartFile;
 
 public class RequestProduct {
 
@@ -15,12 +16,24 @@ public class RequestProduct {
     @Min(value = 100, message = "Price must be greater than or equal to 100.0")
     private Double price;
 
+    @NotNull
+    private MultipartFile image;
+
     public RequestProduct() {
     }
 
-    public RequestProduct(String name, Double price) {
+    public RequestProduct(String name, Double price, MultipartFile image) {
         this.name = name;
         this.price = price;
+        this.image = image;
+    }
+
+    public MultipartFile getImage() {
+        return image;
+    }
+
+    public void setImage(MultipartFile image) {
+        this.image = image;
     }
 
     public String getName() {

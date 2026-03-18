@@ -121,7 +121,7 @@ public record SaveProductCommand(RequestProduct requestProduct) implements IRequ
 public class SaveProductCommandHandler implements IRequestHandler<SaveProductCommand, ResponseRequest> {
     @Override
     public ResponseRequest handle(SaveProductCommand request) {
-        return productSaveHandler.save(request.requestProduct());
+        return iProductPostHandler.save(request.requestProduct());
     }
 }
 ```

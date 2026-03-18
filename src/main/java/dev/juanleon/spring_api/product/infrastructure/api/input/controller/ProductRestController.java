@@ -1,10 +1,12 @@
 package dev.juanleon.spring_api.product.infrastructure.api.input.controller;
 
 import dev.juanleon.spring_api.common.mediator.Mediator;
-import dev.juanleon.spring_api.product.application.commands.SaveProductCommand;
+import dev.juanleon.spring_api.product.application.commands.delete.DeleteProductCommand;
+import dev.juanleon.spring_api.product.application.commands.post.SaveProductCommand;
+import dev.juanleon.spring_api.product.application.commands.update.UpdateProductCommand;
 import dev.juanleon.spring_api.product.application.dto.RequestProduct;
 import dev.juanleon.spring_api.product.application.dto.ResponseProduct;
-import dev.juanleon.spring_api.product.application.dto.ResponseRequest;
+import dev.juanleon.spring_api.common.utils.dto.ResponseRequest;
 import dev.juanleon.spring_api.product.application.queries.GetAllProductsQuery;
 import dev.juanleon.spring_api.product.application.queries.GetByIdProductQuery;
 import jakarta.validation.Valid;
@@ -42,10 +44,26 @@ public class ProductRestController {
     }
 
     @PostMapping
-    public ResponseEntity<ResponseRequest> save(@Valid @RequestBody RequestProduct requestProduct) {
+    public ResponseEntity<ResponseRequest> save(@Valid @ModelAttribute RequestProduct requestProduct) {
         SaveProductCommand command = new SaveProductCommand(requestProduct);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
+                .body(this.mediator.dispatch(command));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ResponseRequest> updateById(@Valid @PathVariable("id") UUID id, @Valid @RequestBody RequestProduct requestProduct) {
+        UpdateProductCommand command = new UpdateProductCommand(id, requestProduct);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(this.mediator.dispatch(command));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ResponseRequest> deleteById(@Valid @PathVariable("id") UUID id) {
+        DeleteProductCommand command = new DeleteProductCommand(id);
+        return ResponseEntity
+                .status(HttpStatus.OK)
                 .body(this.mediator.dispatch(command));
     }
 }

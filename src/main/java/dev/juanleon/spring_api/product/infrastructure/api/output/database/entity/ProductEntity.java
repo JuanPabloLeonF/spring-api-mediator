@@ -15,14 +15,25 @@ public class ProductEntity {
     private String name;
     @Column(nullable = false)
     private Double price;
+    @Column(nullable = false)
+    private String image;
 
     public ProductEntity() {
     }
 
-    public ProductEntity(UUID id, String name, Double price) {
+    public ProductEntity(UUID id, String name, Double price, String image) {
         this.id = id;
         this.name = name;
         this.price = price;
+        this.image = image;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
     }
 
     public UUID getId() {
