@@ -1,89 +1,88 @@
 package dev.juanleon.spring_api.IT;
 
 import dev.juanleon.spring_api.product.application.dto.ResponseProduct;
-import dev.juanleon.spring_api.product.infrastructure.api.output.database.entity.ProductEntity;
 import dev.juanleon.spring_api.product.infrastructure.api.output.database.repository.IProductRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.resttestclient.TestRestTemplate;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.client.RestTestClient;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.mockito.ArgumentMatchers.startsWith;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-@AutoConfigureMockMvc
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureRestTestClient
 public class ProductIT {
 
-//    @Autowired
-//    private TestRestTemplate testRestTemplate;
-
     @Autowired
-    private MockMvc mockMvc;
+    private RestTestClient restTestClient;
 
     @Autowired
     private IProductRepository iProductRepository;
 
-    private static final UUID ID_RANDOM = UUID.randomUUID();
+    private UUID savedId;
 
 
     @BeforeEach
     public void setUp() {
-        ProductEntity entity = new ProductEntity(ID_RANDOM,"manzana 1", 500.0, "img/ruta/1");
-        this.iProductRepository.save(entity);
+        this.savedId = UUID.fromString("5f281964-93aa-4cd2-8ba6-e38c9b5d589d");
     }
 
     @AfterEach
     public void tearDown() {
-        this.iProductRepository.deleteById(ID_RANDOM);
+        //this.iProductRepository.deleteById(this.savedId)
+        IO.println("products: " + this.iProductRepository.findAll());
     }
 
-//    @Test
-//    public void shouldReturnProductWhenGetByIdIsCalled() {
-//
-//        ResponseEntity<ResponseProduct> response = testRestTemplate.getForEntity(
-//                "/api/v1/products/" + ID_RANDOM,
-//                ResponseProduct.class
-//        );
-//
-//        ResponseProduct product = response.getBody();
-//
-//        assertEquals(HttpStatus.OK, response.getStatusCode());
-//        assertNotNull(product);
-//        assertEquals(ID_RANDOM, product.getId());
-//        assertEquals("manzana 1", product.getName());
-//    }
+    @Test
+    public void shouldReturnProductWhenGetByIdIsCalled() {
+        restTestClient.get()
+                .uri("/api/v1/products/{id}", this.savedId)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(ResponseProduct.class)
+                .value(response -> {
+                    assertNotNull(response);
+                    assertEquals(this.savedId, response.getId());
+                    assertEquals("manzana", response.getName());
+                });
+    }
 
     @Test
-    public void shouldReturnStatusOKWhenSaveProduct() throws Exception {
+    public void shouldReturnCreatedWhenSaveProductWithImage() {
+        byte[] imageContent = "imagen-binaria-de-prueba".getBytes();
+        ByteArrayResource imageResource = new ByteArrayResource(imageContent) {
+            @Override
+            public String getFilename() {
+                return "test-image.jpg";
+            }
+        };
 
-        MockMultipartFile mockMultipartFile = new MockMultipartFile(
-                "file",
-                "image.jpeg",
-                "image/jpeg",
-                "image".getBytes()
-        );
+        MultiValueMap<String, Object> formData = new LinkedMultiValueMap<>();
+        formData.add("name", "Producto T123");
+        formData.add("price", 5500.0);
+        formData.add("image", imageResource);
 
-        mockMvc.perform(multipart(HttpMethod.POST, "/api/v1/products")
-                .file(mockMultipartFile)
-                .param("name", "producto 5")
-                .param("price", "8000")
+        restTestClient.post()
+                .uri("/api/v1/products")
                 .contentType(MediaType.MULTIPART_FORM_DATA)
-
-        ).andExpect(status().isCreated());
+                .body(formData)
+                .exchange()
+                .expectStatus().isCreated()
+                .expectBody()
+                .jsonPath("$.message").exists()
+                .jsonPath("$.message").isEqualTo(startsWith("Product save succesfully width id:"))
+                .jsonPath("$.dateTime").exists();
     }
 }
