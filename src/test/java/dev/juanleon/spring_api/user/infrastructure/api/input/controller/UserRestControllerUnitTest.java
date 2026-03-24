@@ -18,9 +18,10 @@ import static org.mockito.Mockito.*;
 
 class UserRestControllerUnitTest {
 
+    public Mediator mediator;
+
     private RestTestClient restTestClient;
 
-    public Mediator mediator;
 
     @BeforeEach
     void setUp() {
@@ -30,7 +31,7 @@ class UserRestControllerUnitTest {
     }
 
     @Test
-    void getAll() {
+    void shouldReturnListResponseUserWhenGetAll() {
         List<ResponseUser> mockResponse = List.of(
                 new ResponseUser(UUID.randomUUID(), "papo", "juan", "user", "123")
         );
@@ -52,7 +53,7 @@ class UserRestControllerUnitTest {
     }
 
     @Test
-    void getByUserName() {
+    void shouldReturnResponseUserWhenGetByUserNameWithParamUserName() {
 
         String userName = "papo";
 

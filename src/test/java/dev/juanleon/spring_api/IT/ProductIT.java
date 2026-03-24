@@ -21,12 +21,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.startsWith;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureRestTestClient
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class ProductIT {
 
     @Autowired
     private RestTestClient restTestClient;
+
 
     @Autowired
     private IProductRepository iProductRepository;
@@ -42,7 +43,6 @@ public class ProductIT {
     @AfterEach
     public void tearDown() {
         //this.iProductRepository.deleteById(this.savedId)
-        IO.println("products: " + this.iProductRepository.findAll());
     }
 
     @Test
